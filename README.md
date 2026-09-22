@@ -54,41 +54,25 @@
 
 <br/>
 
-<!-- Animated Title -->
-<h1>
-  <span style="background: linear-gradient(90deg, #00D2FF, #3A7BD5, #00D2FF); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shimmer 3s linear infinite; font-size: 3em; font-weight: 900; letter-spacing: 2px;">
-    TrackSafar
-  </span>
-</h1>
+<!-- Animated Title (SVG <animate> — GitHub strips CSS <style> blocks) -->
+<svg width="560" height="80" viewBox="0 0 560 80" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="TrackSafar">
+  <defs>
+    <linearGradient id="titleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00D2FF">
+        <animate attributeName="stop-color" values="#00D2FF;#3A7BD5;#00D2FF" dur="3s" repeatCount="indefinite"/>
+      </stop>
+      <stop offset="50%" stop-color="#3A7BD5">
+        <animate attributeName="stop-color" values="#3A7BD5;#5B86E5;#3A7BD5" dur="3s" repeatCount="indefinite"/>
+      </stop>
+      <stop offset="100%" stop-color="#00D2FF">
+        <animate attributeName="stop-color" values="#00D2FF;#3A7BD5;#00D2FF" dur="3s" repeatCount="indefinite"/>
+      </stop>
+    </linearGradient>
+  </defs>
+  <text x="280" y="56" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="52" font-weight="900" letter-spacing="3" fill="url(#titleGrad)">TrackSafar</text>
+</svg>
 
-<style>
-  @keyframes shimmer {
-    0% { background-position: 0% center; }
-    100% { background-position: 200% center; }
-  }
-  @keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-  }
-  @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-8px); }
-  }
-  @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
-  }
-  @keyframes typing {
-    from { width: 0; }
-    to { width: 100%; }
-  }
-</style>
-
-<p style="font-size: 1.2em; color: #555; animation: fadeInUp 1s ease-out;">
+<p style="font-size: 1.2em; color: #555;">
   <b>Real-Time Public Transport Tracking for Lahore</b>
 </p>
 
@@ -238,30 +222,40 @@ Choose the **optimal bus**, know exactly when it arrives, and plan your journey 
 ## Tech Architecture
 
 ```
-┌──────────────────────────────────────────────────────────┐
-│                     CLIENT LAYER                         │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────┐  │
-│  │  Passenger   │  │   Driver    │  │   Admin Panel   │  │
-│  │ Flutter App  │  │ Flutter App │  │   Web Dashboard │  │
-│  │ (Mobile)     │  │ (Mobile)    │  │   (Browser)     │  │
-│  └──────┬──────┘  └──────┬──────┘  └────────┬────────┘  │
-└─────────┼────────────────┼──────────────────┼────────────┘
-          │                │                  │
-          ▼                ▼                  ▼
-┌──────────────────────────────────────────────────────────┐
-│                    SERVER LAYER                          │
-│  ┌──────────────────────────────────────────────────┐    │
-│  │              FastAPI / REST Backend               │    │
-│  │        Authentication · Business Logic            │    │
-│  └──────────────────┬───────────────────────────────┘    │
-└─────────────────────┼────────────────────────────────────┘
-          │           │           │
-          ▼           ▼           ▼
-┌──────────────┐ ┌──────────┐ ┌──────────────────┐
-│  Supabase    │ │  Google   │ │    WebSockets     │
-│ PostgreSQL   │ │  Maps API │ │  (Real-time Bus   │
-│ (Database)   │ │ (Mapping) │ │   Location Feed)  │
-└──────────────┘ └──────────┘ └──────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                         CLIENT LAYER                         │
+│  ┌───────────────┐  ┌───────────────┐  ┌─────────────────┐   │
+│  │   Passenger   │  │     Driver    │  │   Admin Panel   │   │
+│  │  Flutter App  │  │  Flutter App  │  │  Web Dashboard  │   │
+│  │    (Mobile)   │  │    (Mobile)   │  │    (Browser)    │   │
+│  └───────┬───────┘  └───────┬───────┘  └────────┬────────┘   │
+└──────────┼──────────────────┼───────────────────┼────────────┘
+           │                  │                   │
+           ▼                  ▼                   ▼
+┌──────────────────────────────────────────────────────────────┐
+│                         SERVER LAYER                         │
+│  ┌──────────────────────────────────────────────────────┐    │
+│  │                FastAPI / REST Backend                │    │
+│  │           Authentication · Business Logic            │    │
+│  └───────┬──────────────────┬───────────────────┬───────┘    │
+└──────────┼──────────────────┼───────────────────┼────────────┘
+           │                  │                   │
+           ▼                  ▼                   ▼
+    ┌─────────────┐
+    │   Supabase  │
+    │  PostgreSQL │
+    │  (Database) │
+    └─────────────┘
+                       ┌─────────────┐
+                       │    Google   │
+                       │   Maps API  │
+                       │  (Mapping)  │
+                       └─────────────┘
+                                         ┌─────────────────┐
+                                         │    WebSockets   │
+                                         │  (Real-time Bus │
+                                         │  Location Feed) │
+                                         └─────────────────┘
 ```
 
 ---
@@ -318,7 +312,7 @@ cd TrackSafar
 <tr>
 <td align="center">
   <a href="https://github.com/m-abdulrehman-maq">
-    <img src="https://github.com/m-abdulrehman-maq.png" width="80" style="border-radius:50%; animation: pulse 2s infinite;"/>
+    <img src="https://github.com/m-abdulrehman-maq.png" width="80" style="border-radius:50%;"/>
     <br/>
     <b>M. Abdul Rehman Maqsood</b>
   </a>
@@ -327,7 +321,7 @@ cd TrackSafar
 </td>
 <td align="center">
   <a href="#">
-    <img src="https://ui-avatars.com/api/?name=Mujeeb+ur+Rehman&background=0D8ABC&color=fff&size=80" width="80" style="border-radius:50%; animation: pulse 2s infinite;"/>
+    <img src="https://ui-avatars.com/api/?name=Mujeeb+ur+Rehman&background=0D8ABC&color=fff&size=80" width="80" style="border-radius:50%;"/>
     <br/>
     <b>Mujeeb ur Rehman</b>
   </a>
@@ -336,7 +330,7 @@ cd TrackSafar
 </td>
 <td align="center">
   <a href="https://github.com/afaq-pak">
-    <img src="https://github.com/afaq-pak.png" width="80" style="border-radius:50%; animation: pulse 2s infinite;"/>
+    <img src="https://github.com/afaq-pak.png" width="80" style="border-radius:50%;"/>
     <br/>
     <b>Afaq Ahmad</b>
   </a>
