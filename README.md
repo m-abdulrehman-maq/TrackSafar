@@ -320,8 +320,8 @@ cd TrackSafar
   <sub>2024-CE-31</sub>
 </td>
 <td align="center">
-  <a href="#">
-    <img src="https://ui-avatars.com/api/?name=Mujeeb+ur+Rehman&background=0D8ABC&color=fff&size=80" width="80" style="border-radius:50%;"/>
+  <a href="https://github.com/engr-mujeeb-ur-rehman">
+    <img src="https://github.com/engr-mujeeb-ur-rehman.png" width="80" style="border-radius:50%;"/>
     <br/>
     <b>Mujeeb ur Rehman</b>
   </a>
@@ -329,8 +329,8 @@ cd TrackSafar
   <sub>2024-CE-09</sub>
 </td>
 <td align="center">
-  <a href="https://github.com/afaq-pak">
-    <img src="https://github.com/afaq-pak.png" width="80" style="border-radius:50%;"/>
+  <a href="https://github.com/engr-m-afaq-ahmad">
+    <img src="https://github.com/engr-m-afaq-ahmad.png" width="80" style="border-radius:50%;"/>
     <br/>
     <b>Afaq Ahmad</b>
   </a>
