@@ -312,7 +312,7 @@ cd TrackSafar
 <tr>
 <td align="center">
   <a href="https://github.com/m-abdulrehman-maq">
-    <img src="https://github.com/m-abdulrehman-maq.png" width="80" style="border-radius:50%;"/>
+    <img src="https://github.com/m-abdulrehman-maq.png" width="80"   height="80" style="border-radius:50%; object-fit:cover;"/>
     <br/>
     <b>M. Abdul Rehman Maqsood</b>
   </a>
@@ -321,7 +321,7 @@ cd TrackSafar
 </td>
 <td align="center">
   <a href="https://github.com/engr-mujeeb-ur-rehman">
-    <img src="https://github.com/engr-mujeeb-ur-rehman.png" width="80" style="border-radius:50%;"/>
+    <img src="https://github.com/engr-mujeeb-ur-rehman.png" width="80"  height="80" style="border-radius:50%;object-fit:cover;"/>
     <br/>
     <b>Mujeeb ur Rehman</b>
   </a>
@@ -330,7 +330,7 @@ cd TrackSafar
 </td>
 <td align="center">
   <a href="https://github.com/engr-m-afaq-ahmad">
-    <img src="https://github.com/engr-m-afaq-ahmad.png" width="80" style="border-radius:50%;"/>
+    <img src="https://github.com/engr-m-afaq-ahmad.png" width="80"  height="80" style="border-radius:50%; object-fit:cover;"/>
     <br/>
     <b>Afaq Ahmad</b>
   </a>
