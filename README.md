@@ -77,11 +77,16 @@
 </p>
 
 <p>
-  <img src="https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white" alt="Flutter"/>
-  <img src="https://img.shields.io/badge/Supabase-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase"/>
-  <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"/>
-  <img src="https://img.shields.io/badge/Google_Maps-4285F4?style=for-the-badge&logo=google-maps&logoColor=white" alt="Google Maps"/>
+  <img src="https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React Native"/>
+  <img src="https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo&logoColor=white" alt="Expo"/>
+  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React"/>
+  <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite"/>
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript"/>
   <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI"/>
+  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"/>
+  <img src="https://img.shields.io/badge/Supabase-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase"/>
+  <img src="https://img.shields.io/badge/PostGIS-336791?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostGIS"/>
+  <img src="https://img.shields.io/badge/Google_Maps-4285F4?style=for-the-badge&logo=google-maps&logoColor=white" alt="Google Maps"/>
 </p>
 
 <p>
@@ -224,38 +229,29 @@ Choose the **optimal bus**, know exactly when it arrives, and plan your journey 
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │                         CLIENT LAYER                         │
-│  ┌───────────────┐  ┌───────────────┐  ┌─────────────────┐   │
-│  │   Passenger   │  │     Driver    │  │   Admin Panel   │   │
-│  │  Flutter App  │  │  Flutter App  │  │  Web Dashboard  │   │
-│  │    (Mobile)   │  │    (Mobile)   │  │    (Browser)    │   │
-│  └───────┬───────┘  └───────┬───────┘  └────────┬────────┘   │
-└──────────┼──────────────────┼───────────────────┼────────────┘
-           │                  │                   │
-           ▼                  ▼                   ▼
+│  ┌───────────────────────────────┐     ┌─────────────────┐   │
+│  │   Passenger & Driver Panels   │     │   Admin Panel   │   │
+│  │     Expo (React Native)       │     │  React + Vite   │   │
+│  │         TypeScript            │     │   TypeScript    │   │
+│  │          (Mobile)             │     │ (Web Dashboard) │   │
+│  └───────────────┬───────────────┘     └────────┬────────┘   │
+└──────────────────┼──────────────────────────────┼────────────┘
+                   │                              │
+                   ▼                              ▼
 ┌──────────────────────────────────────────────────────────────┐
 │                         SERVER LAYER                         │
 │  ┌──────────────────────────────────────────────────────┐    │
-│  │                FastAPI / REST Backend                │    │
-│  │           Authentication · Business Logic            │    │
+│  │            FastAPI (Python) REST & WebSockets        │    │
+│  │     Central Auth · Services · Schemas · Repositories │    │
 │  └───────┬──────────────────┬───────────────────┬───────┘    │
 └──────────┼──────────────────┼───────────────────┼────────────┘
            │                  │                   │
            ▼                  ▼                   ▼
-    ┌─────────────┐
-    │   Supabase  │
-    │  PostgreSQL │
-    │  (Database) │
-    └─────────────┘
-                       ┌─────────────┐
-                       │    Google   │
-                       │   Maps API  │
-                       │  (Mapping)  │
-                       └─────────────┘
-                                         ┌─────────────────┐
-                                         │    WebSockets   │
-                                         │  (Real-time Bus │
-                                         │  Location Feed) │
-                                         └─────────────────┘
+    ┌─────────────┐    ┌─────────────┐     ┌─────────────────┐
+    │  Supabase / │    │    Google   │     │   WebSockets    │
+    │  PostgreSQL │    │   Maps API  │     │  (Real-time Bus │
+    │  + PostGIS  │    │  (Mapping)  │     │  Location Feed) │
+    └─────────────┘    └─────────────┘     └─────────────────┘
 ```
 
 ---
@@ -264,14 +260,14 @@ Choose the **optimal bus**, know exactly when it arrives, and plan your journey 
 
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
-| **Mobile** | Flutter | Cross-platform passenger & driver apps |
-| **Web** | React / Next.js | Admin dashboard |
-| **Backend** | FastAPI (Python) | REST API & business logic |
-| **Database** | PostgreSQL via Supabase | Data storage & realtime subscriptions |
-| **Auth** | Supabase Auth | User authentication & sessions |
-| **Maps** | Google Maps API | Map rendering, routing & geocoding |
-| **Realtime** | Supabase Realtime | Live bus location streaming |
-| **Hosting** | Vercel / Railway | Backend & dashboard deployment |
+| **Mobile App** | Expo (React Native) + TypeScript | Cross-platform mobile app containing Passenger & Driver panels |
+| **Web Admin** | React + Vite + TypeScript | Administrator web application for fleet monitoring & system management |
+| **Backend** | FastAPI (Python) | Central authentication, REST APIs, business services, schemas, repositories & WebSockets |
+| **Database** | Supabase (PostgreSQL + PostGIS) | Relational data, spatial PostGIS functions, SQL migrations, seeds, RLS policies & tests |
+| **Authentication** | Centralized Backend Auth (FastAPI) | Central authentication in backend with client session handling on frontend |
+| **Maps & Location** | Google Maps API & Background GPS | Map rendering, geospatial queries, geocoding & driver background location tracking |
+| **Realtime** | WebSockets (FastAPI) | High-frequency live bus GPS streaming & driver-passenger tracking feeds |
+| **Infrastructure** | Docker & GitHub Actions | Containerized dev/prod environments, deployment runbooks & CI/CD workflows |
 
 ---
 
@@ -297,12 +293,12 @@ cd TrackSafar
 |-------|-----------|--------|
 | **Phase 1** | SRS & Documentation | <span style="color:green">Completed</span> |
 | **Phase 2** | System Design & DB Schema | <span style="color:orange">In Progress</span> |
-| **Phase 3** | Flutter App Scaffolding | <span style="color:gray">Planned</span> |
-| **Phase 4** | Backend API Development | <span style="color:gray">Planned</span> |
-| **Phase 5** | Supabase Integration | <span style="color:gray">Planned</span> |
-| **Phase 6** | Maps & Realtime Tracking | <span style="color:gray">Planned</span> |
-| **Phase 7** | Admin Dashboard | <span style="color:gray">Planned</span> |
-| **Phase 8** | Testing & Deployment | <span style="color:gray">Planned</span> |
+| **Phase 3** | Mobile App Scaffolding (Expo + React Native) | <span style="color:gray">Planned</span> |
+| **Phase 4** | Backend API & WebSockets Development (FastAPI) | <span style="color:gray">Planned</span> |
+| **Phase 5** | Database & Supabase Integration (PostGIS) | <span style="color:gray">Planned</span> |
+| **Phase 6** | Maps & Background GPS Realtime Tracking | <span style="color:gray">Planned</span> |
+| **Phase 7** | Admin Dashboard (React + Vite) | <span style="color:gray">Planned</span> |
+| **Phase 8** | System Testing & Deployment (Docker/CI) | <span style="color:gray">Planned</span> |
 
 ---
 
