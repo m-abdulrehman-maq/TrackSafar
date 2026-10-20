@@ -1,0 +1,56 @@
+# --- Python / Backend ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+backend/.venv/
+
+# Environment & secrets (NEVER commit)
+.env
+.env.*
+!.env.example
+backend/app/.env
+backend/.env
+data
+
+# Local development databases
+*.db
+*.sqlite
+*.sqlite3
+backend/tracksafar_dev.db
+
+# --- Node / Frontend ---
+node_modules/
+dist/
+build/
+.vite/
+*.tsbuildinfo
+
+# --- Logs ---
+*.log
+npm-debug.log*
+logs/
+__pycache__/
+
+# --- OS / Editor ---
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# --- Test / coverage ---
+.pytest_cache/
+.coverage
+htmlcov/
+coverage/
+.nyc_output/
+
+# --- Misc ---
+*.pem
+*.key
+.cache/

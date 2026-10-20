@@ -1,0 +1,157 @@
+@import "tailwindcss";
+
+@theme {
+  /* TrackSafar brand — deep teal primary, bright mint accent */
+  --color-brand-50: #e6f7f2;
+  --color-brand-100: #d1f2e8;
+  --color-brand-200: #a6e5d3;
+  --color-brand-300: #6fd4bb;
+  --color-brand-400: #2ec49f;
+  --color-brand-500: #00b386;
+  --color-brand-600: #009872;
+  --color-brand-700: #006852;
+  --color-brand-800: #00543f;
+  --color-brand-900: #003d2e;
+
+  /* Neutrals */
+  --color-surface: #ffffff;
+  --color-surface-muted: #f8faf9;
+  --color-border: #e4e9e7;
+  --color-border-strong: #cdd5d2;
+  --color-ink: #14201c;
+  --color-ink-muted: #5b6b66;
+  --color-ink-faint: #8b9894;
+
+  /* Status */
+  --color-danger: #b42318;
+  --color-danger-soft: #fef3f2;
+  --color-warning: #b54708;
+  --color-warning-soft: #fffaeb;
+  --color-info: #175cd3;
+  --color-info-soft: #eff8ff;
+  --color-success: #067647;
+  --color-success-soft: #ecfdf3;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  --radius-card: 0.75rem;
+  --radius-control: 0.6rem;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    background: var(--color-surface-muted);
+  }
+  *:focus-visible {
+    outline: 2px solid var(--color-brand-600);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+@layer components {
+  .ts-input {
+    @apply w-full rounded-[--radius-control] border border-border bg-white px-3 py-2 text-sm text-ink
+      placeholder:text-ink-faint transition-colors
+      hover:border-border-strong
+      focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100
+      disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-ink-faint;
+  }
+  .ts-input[aria-invalid="true"] {
+    border-color: var(--color-danger);
+  }
+  .ts-label {
+    @apply mb-1.5 block text-sm font-medium text-ink;
+  }
+  .ts-hint {
+    @apply mt-1 text-xs text-ink-muted;
+  }
+  .ts-error-text {
+    @apply mt-1 text-xs font-medium text-danger;
+  }
+
+  /* ---- TrackSafar animated loader ---- */
+  .ts-word {
+    display: inline-block;
+    font-size: 2.25rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--color-brand-700);
+    opacity: 0;
+    transform: translateY(14px);
+    animation: ts-word-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  .ts-word-accent {
+    color: var(--color-brand-500);
+    animation-delay: 0.25s;
+  }
+
+  .ts-bus-track {
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 12px,
+      var(--color-brand-300) 12px,
+      var(--color-brand-300) 22px
+    );
+    background-size: 100% 2px;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.5;
+  }
+
+  .ts-bus {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translate(-120%, -50%);
+    animation: ts-bus-drive 1.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  }
+  .ts-bus-sm {
+    animation-duration: 1.2s;
+  }
+
+  @keyframes ts-word-in {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes ts-bus-drive {
+    0% {
+      transform: translate(-120%, -50%);
+    }
+    100% {
+      transform: translate(560%, -50%);
+    }
+  }
+
+  /* Generic shimmer for skeletons */
+  .ts-shimmer {
+    background: linear-gradient(
+      90deg,
+      var(--color-border) 25%,
+      var(--color-surface-muted) 50%,
+      var(--color-border) 75%
+    );
+    background-size: 200% 100%;
+    animation: ts-shimmer 1.4s ease-in-out infinite;
+  }
+
+  @keyframes ts-shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+}

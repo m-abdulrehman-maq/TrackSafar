@@ -1,0 +1,16 @@
+{
+  "name": "tracksafar",
+  "private": true,
+  "version": "0.1.0",
+  "description": "TrackSafar monorepo (npm workspaces)",
+  "workspaces": [
+    "frontend/admin-web"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace admin-web",
+    "build": "npm run build --workspace admin-web",
+    "test": "npm run test --workspace admin-web",
+    "lint": "npm run lint --workspace admin-web",
+    "typecheck": "npm run typecheck --workspace admin-web"
+  }
+}
