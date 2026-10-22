@@ -1,5 +1,7 @@
 /** API client: normalized errors, bearer session, no silent mock fallbacks. */
 
+import { API_BASE_URL } from "../config/env";
+
 const TOKEN_KEY = "tracksafar.token";
 
 export function getToken() {
@@ -41,7 +43,7 @@ export async function api(path, { method = "GET", body, signal } = {}) {
 
   let res;
   try {
-    res = await fetch(`/api/v1${path}`, {
+    res = await fetch(`${API_BASE_URL}/api/v1${path}`, {
       method,
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { MapPin, Radio, RefreshCw, StopCircle } from "lucide-react";
 import { get, post, getToken } from "../../lib/api";
+import { WS_BASE_URL } from "../../config/env";
 import { ageLabel, formatTime, formatTimestamp, FRESHNESS_LABELS } from "../../lib/format";
 import { Badge, Banner, Card, CardBody, CardHeader, EmptyState, ErrorState, LoadingState, PageHeader } from "../../components/ui/Display";
 import { Table, Td, Tr, TableState, Pagination } from "../../components/ui/Table";
@@ -26,7 +27,8 @@ function useTrackingSocket(onEvent) {
 
     const connect = () => {
       const proto = window.location.protocol === "https:" ? "wss" : "ws";
-      ws = new WebSocket(`${proto}://${window.location.host}/ws/tracking`);
+      const wsBase = WS_BASE_URL || `${proto}://${window.location.host}`;
+      ws = new WebSocket(`${wsBase}/ws/tracking`);
       ws.onopen = () => {
         ws.send(JSON.stringify({ type: "auth", token }));
         setStatus("live");

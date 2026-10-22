@@ -32,10 +32,12 @@ const ROLE_PATHS = { passenger: "/login/passenger", driver: "/login/driver", adm
 export function LoginPage() {
   const { role } = useParams();
   const location = useLocation();
-  const { login, profile, authConfig, initializing } = useAuth();
+  const { login, profile, authConfig, authConfigError, initializing } = useAuth();
 
   const activeRole = role || (new URLSearchParams(location.search).get("role") || "passenger");
   const copy = ROLE_COPY[activeRole] || ROLE_COPY.passenger;
+  const passwordLoginBlocked =
+    authConfig.auth_mode === "supabase" && !authConfig.password_login_enabled;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -143,10 +145,16 @@ export function LoginPage() {
             ))}
           </div>
 
-          {authConfig.auth_mode === "supabase" && (
+          {authConfigError && (
+            <Banner tone="warning" title="Could not load sign-in settings">
+              The server could not be reached. Check that the backend is running and that
+              VITE_API_URL points to it, then retry.
+            </Banner>
+          )}
+
+          {passwordLoginBlocked && (
             <Banner tone="info" title="Managed sign-in">
-              Sessions are issued by the identity provider. Sign-in will redirect through your
-              organization's authentication service.
+              Password sign-in is handled by the identity provider in this environment.
             </Banner>
           )}
 
@@ -203,7 +211,7 @@ export function LoginPage() {
               />
             )}
 
-            <Button type="submit" className="w-full" loading={submitting} disabled={!authConfig.password_login_enabled && authConfig.auth_mode !== "development"}>
+            <Button type="submit" className="w-full" loading={submitting} disabled={passwordLoginBlocked}>
               Sign in
             </Button>
 

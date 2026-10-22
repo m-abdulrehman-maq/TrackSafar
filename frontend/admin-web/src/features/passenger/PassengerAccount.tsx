@@ -139,7 +139,7 @@ export function PassengerAccount({ auth, location }: { auth: PassengerAuth; loca
         <h3>Feedback</h3><p>Please share feedback with your transport operator or the TrackSafar project team. In-app feedback submission is not available yet.</p>
       </div> : <div className="ps-dialog-body ps-help">
         <h3>TrackSafar</h3><p>A simpler way to explore Lahore's bus network and find buses near you.</p>
-        <p>Routes, bus locations and arrival estimates depend on the information available. The map and arrival estimates are not available in this version.</p>
+        <p>Routes, bus locations and arrival estimates depend on the information available. Arrival estimates are not available in this version.</p>
         <div className="ps-about-links"><Link to="/privacy">Privacy notice</Link><Link to="/terms">Terms of use</Link></div>
       </div>}
     </PassengerModal>}

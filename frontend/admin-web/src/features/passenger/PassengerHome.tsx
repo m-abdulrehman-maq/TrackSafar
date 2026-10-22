@@ -5,6 +5,8 @@ import { BusFront, ChevronRight, Leaf, LoaderCircle, LocateFixed, MapPin, Refres
 import { apiGet, distanceLabel, errorMessage, loadBusCatalog, matchesService, searchNetwork, timeAgo } from "./passenger-data";
 import type { Bus, NearbyBus, Profile, RouteDetail, ServiceFilter, Stop, TrackedBus } from "./passenger-data";
 import type { PassengerLocation } from "./usePassengerLocation";
+import { searchPlaces } from "../../maps/geocoding";
+import type { Place } from "../../maps/geocoding";
 import { PassengerBrand, PassengerEmpty, PassengerModal } from "./PassengerUi";
 import { PassengerMap } from "./PassengerMap";
 
@@ -24,8 +26,10 @@ export function PassengerHome({ profile, location }: { profile: Profile; locatio
   const [searchText, setSearchText] = useState("");
   const [term, setTerm] = useState("");
   const [selection, setSelection] = useState<Selection | null>(null);
+  const [focus, setFocus] = useState<Place | null>(null);
   const [now, setNow] = useState(Date.now());
   const searching = searchText.trim().length > 0;
+  const mapPosition = focus ?? location.position;
 
   useEffect(() => {
     const timer = window.setTimeout(() => setTerm(searchText.trim()), 300);
@@ -37,10 +41,10 @@ export function PassengerHome({ profile, location }: { profile: Profile; locatio
   }, []);
 
   const nearby = useQuery({
-    queryKey: ["passenger", profile.id, "nearby", location.position?.latitude, location.position?.longitude],
-    enabled: Boolean(location.position) && !searching,
-    queryFn: ({ signal }) => apiGet<NearbyBus[]>("/tracking/nearby?lat=" + location.position!.latitude +
-      "&lon=" + location.position!.longitude + "&radius_m=1500", signal),
+    queryKey: ["passenger", profile.id, "nearby", mapPosition?.latitude, mapPosition?.longitude],
+    enabled: Boolean(mapPosition) && !searching,
+    queryFn: ({ signal }) => apiGet<NearbyBus[]>("/tracking/nearby?lat=" + mapPosition!.latitude +
+      "&lon=" + mapPosition!.longitude + "&radius_m=1500", signal),
     refetchInterval: 5000,
     refetchIntervalInBackground: false,
     refetchOnWindowFocus: true,
@@ -51,19 +55,37 @@ export function PassengerHome({ profile, location }: { profile: Profile; locatio
     enabled: term.length >= 2 && searching,
     queryFn: ({ signal }) => searchNetwork(term, signal),
   });
+  const places = useQuery({
+    queryKey: ["passenger", profile.id, "places", term],
+    enabled: term.length >= 2 && searching,
+    queryFn: ({ signal }) => searchPlaces(term, signal),
+    staleTime: 60_000,
+    retry: 0,
+  });
   const catalog = useQuery({
     queryKey: ["passenger", profile.id, "bus-catalog"],
-    enabled: filter !== "all" && (Boolean(location.position) || term.length >= 2),
+    enabled: filter !== "all" && (Boolean(mapPosition) || term.length >= 2),
     queryFn: ({ signal }) => loadBusCatalog(signal),
     staleTime: 60_000,
   });
   const operators = new Map((catalog.data || []).map((bus) => [bus.id, bus.operator]));
   const nearbyItems = (nearby.data || []).filter((item) => matchesService(operators.get(item.bus.bus_id), filter));
   const filteredBuses = (search.data?.buses || []).filter((bus) => matchesService(bus.operator, filter));
+  const resultCount = filteredBuses.length + (search.data?.routes.length || 0) +
+    (search.data?.stops.length || 0) + (places.data?.length || 0);
   const filterPending = filter !== "all" && catalog.isPending;
   const filterError = filter !== "all" && catalog.isError;
-  const nearbyReady = Boolean(location.position) && nearby.isSuccess && !filterPending && !filterError;
+  const nearbyReady = Boolean(mapPosition) && nearby.isSuccess && !filterPending && !filterError;
   const chooseBus = (item: NearbyBus) => setSelection({ kind: "route", id: item.bus.route_id, bus: item.bus });
+  const choosePlace = (place: Place) => {
+    setFocus(place);
+    setSearchText("");
+    setTerm("");
+  };
+  const useMyLocation = () => {
+    setFocus(null);
+    location.locate();
+  };
 
   return <main className="ps-home">
     <header className="ps-home-header">
@@ -90,15 +112,24 @@ export function PassengerHome({ profile, location }: { profile: Profile; locatio
       </div>
     </header>
 
-    {searching ? <section className="ps-search-results" aria-label="Search results" aria-busy={search.isFetching}>
-      <div className="ps-section-heading"><h1>Find your route</h1><span>Bus · route · stop</span></div>
+    {searching ? <section className="ps-search-results" aria-label="Search results" aria-busy={search.isFetching || places.isFetching}>
+      <div className="ps-section-heading"><h1>Find your route</h1><span>Bus · route · stop · place</span></div>
       {searchText.trim().length < 2 ? <p className="ps-inline-note">Enter at least 2 characters to search.</p>
-        : term !== searchText.trim() || search.isPending ? <Loading text="Searching the network…" />
-        : search.isError ? <Failure message={errorMessage(search.error)} onRetry={() => void search.refetch()} />
+        : term !== searchText.trim() ? <Loading text="Searching…" />
         : <>
+          {search.isPending && <Loading text="Searching the network…" />}
+          {search.isError && <Failure message={errorMessage(search.error)} onRetry={() => void search.refetch()} />}
+          {places.isError && <p className="ps-inline-note">Place search is unavailable right now. Network results are still shown.</p>}
           {filter !== "all" && <p className="ps-inline-note">The service filter applies to buses. Routes and stops are shown for all services.</p>}
-          {filteredBuses.length + (search.data?.routes.length || 0) + (search.data?.stops.length || 0) === 0 &&
-            <PassengerEmpty title="No matches found">Try a different bus number, route or stop name.</PassengerEmpty>}
+          {resultCount === 0 && !search.isPending && !places.isPending &&
+            <PassengerEmpty title="No matches found">Try a different bus number, route, stop or place name.</PassengerEmpty>}
+          {!!places.data?.length && <h2 className="ps-result-label">Places</h2>}
+          {places.data?.map((place) => <button type="button" className="ps-result" key={"place-" + place.id}
+            onClick={() => choosePlace(place)}>
+            <span className="ps-stop-icon"><MapPin size={20} aria-hidden="true" /></span>
+            <span className="ps-result-copy"><strong>{place.name}</strong><small>{place.address}</small></span>
+            <ChevronRight size={18} aria-hidden="true" />
+          </button>)}
           {!!search.data?.routes.length && <h2 className="ps-result-label">Routes</h2>}
           {search.data?.routes.map((route) => <button type="button" className="ps-result" key={route.id}
             onClick={() => setSelection({ kind: "route", id: route.id })}>
@@ -123,9 +154,16 @@ export function PassengerHome({ profile, location }: { profile: Profile; locatio
         </>}
     </section> : <>
       <section className="ps-map-area" aria-label="Bus map">
-        <PassengerMap position={location.position} buses={nearbyReady ? nearbyItems : []} onSelectBus={chooseBus} />
+        <PassengerMap position={location.position} focus={focus} buses={nearbyReady ? nearbyItems : []} onSelectBus={chooseBus} />
+        {focus && <div className="ps-map-focus-note">
+          <MapPin size={15} aria-hidden="true" />
+          <span>Buses near <strong>{focus.name}</strong></span>
+          <button type="button" className="ps-icon-button" aria-label="Clear searched place" onClick={() => setFocus(null)}>
+            <X size={16} aria-hidden="true" />
+          </button>
+        </div>}
         <button type="button" className="ps-locate-button" aria-label={location.locating ? "Finding your location" : "Use my location"}
-          title="Use my location" disabled={location.locating} onClick={location.locate}>
+          title="Use my location" disabled={location.locating} onClick={useMyLocation}>
           {location.locating ? <LoaderCircle className="ps-spin" size={23} aria-hidden="true" /> : <LocateFixed size={24} aria-hidden="true" />}
         </button>
       </section>
@@ -135,18 +173,18 @@ export function PassengerHome({ profile, location }: { profile: Profile; locatio
           <h2>{nearbyReady ? nearbyItems.length + (nearbyItems.length === 1 ? " bus nearby" : " buses nearby") : "Nearby buses"}</h2>
           <div className="ps-check-time">
             {nearbyReady && <span>Checked {timeAgo(nearby.dataUpdatedAt, now)}</span>}
-            {location.position && <button type="button" className="ps-icon-button" aria-label="Refresh nearby buses"
+            {mapPosition && <button type="button" className="ps-icon-button" aria-label="Refresh nearby buses"
               disabled={nearby.isFetching} onClick={() => { void nearby.refetch(); if (filter !== "all") void catalog.refetch(); }}>
               <RefreshCw size={15} className={nearby.isFetching ? "ps-spin" : ""} aria-hidden="true" />
             </button>}
           </div>
         </div>
         {location.error && <p className="ps-notice" role="alert">{location.error}</p>}
-        {!location.position ? <div className="ps-location-prompt">
+        {!mapPosition ? <div className="ps-location-prompt">
           <span className="ps-location-symbol" aria-hidden="true"><LocateFixed size={22} /></span>
           <h2>{location.locating ? "Finding your location…" : "Find buses around you"}</h2>
-          <p>Use your location to see buses within 1.5 km.<br />You can also search without sharing your location.</p>
-          <button type="button" className="ps-button ps-button-primary" disabled={location.locating} onClick={location.locate}>
+          <p>Use your location or search a city or place to see buses within 1.5 km of that point.</p>
+          <button type="button" className="ps-button ps-button-primary" disabled={location.locating} onClick={useMyLocation}>
             {location.locating ? <LoaderCircle size={16} className="ps-spin" aria-hidden="true" /> : <LocateFixed size={16} aria-hidden="true" />}
             {location.locating ? "Locating…" : "Use my location"}
           </button>

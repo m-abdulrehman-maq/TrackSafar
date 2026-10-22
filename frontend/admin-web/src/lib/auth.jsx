@@ -12,6 +12,7 @@ export function redirectForRole(role) {
 export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(null);
   const [authConfig, setAuthConfig] = useState({ auth_mode: "unknown", password_login_enabled: false });
+  const [authConfigError, setAuthConfigError] = useState(false);
   const [initializing, setInitializing] = useState(true);
 
   const loadSession = useCallback(async () => {
@@ -35,8 +36,14 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     get("/auth/config")
-      .then(setAuthConfig)
-      .catch(() => setAuthConfig({ auth_mode: "unknown", password_login_enabled: false }));
+      .then((cfg) => {
+        setAuthConfig(cfg);
+        setAuthConfigError(false);
+      })
+      .catch(() => {
+        setAuthConfig({ auth_mode: "unknown", password_login_enabled: false });
+        setAuthConfigError(true);
+      });
     loadSession();
   }, [loadSession]);
 
@@ -64,8 +71,8 @@ export function AuthProvider({ children }) {
   }, []);
 
   const value = useMemo(
-    () => ({ profile, authConfig, initializing, login, register, logout, reload: loadSession }),
-    [profile, authConfig, initializing, login, register, logout, loadSession],
+    () => ({ profile, authConfig, authConfigError, initializing, login, register, logout, reload: loadSession }),
+    [profile, authConfig, authConfigError, initializing, login, register, logout, loadSession],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
