@@ -1,14 +1,118 @@
 # TrackSafar — UI and Detailed System Design
 
-Version: 1.0 · Date: 2026-10-13 · Status: planned design; diagrams are conceptual, not deployed schema.
+Version: 1.1 · Updated: 2026-10-22 · Status: shared colour standard for implementation; screen flows and system diagrams remain planned/conceptual, not deployed schema.
 
-Related documents: [SRS](SRS.md) · [Technology stack](teckstack.md) · [Architecture](architecture.md) · [Rules](rules.md) · [Tasks](tasks.md)
+Related documents: [SRS](../../../01-requirements/SRS/SRS.md) · [Technology stack](../../../teckstack.md) · [Architecture](../../architecture/architecture.md) · [Rules](../../../rules.md) · [Tasks](../../../tasks.md)
 
 ## 1. Design purpose and conventions
 
 This document specifies screens, states, conceptual entities and module interactions. It does not replace the system boundaries in architecture or the requirements in SRS. Names below are domain concepts; final columns and payload contracts are reviewed during the relevant milestone before code or migrations are written.
 
 Use **Passenger**, **Driver**, **Administrator**, **Bus**, **Route**, **Stop**, **Assignment**, **Trip**, **Location observation**, **Notification**, and **System alert** consistently. Display labels may say Administrator; the proposed internal role identifier is `admin`. A route is a registered direction-specific service path. A trip is one authorized run against an assignment. A location observation has both device observation time and server receipt time.
+
+### 1.1 One colour scheme for all three members
+
+**All contributors must use the same TrackSafar palette for Passenger, Driver, Administrator and public authentication screens.** A member's assigned panel or milestone does not introduce a separate theme. The shared visual direction is deep teal, mint accents, white cards and light neutral backgrounds.
+
+The tables below specify the exact values already defined in the web application's [shared theme](../../../../frontend/admin-web/src/styles/index.css). This document defines their meaning and usage; that stylesheet is the web implementation source. Keep both in sync when a palette change is reviewed.
+
+The current standard is a light theme. Dark mode and additional brand colours require a coordinated theme update covering every panel. A screenshot or mockup is a layout reference, not a reason to sample a slightly different green or grey.
+
+### 1.2 Required palette
+
+Token names below map to CSS variables by adding `--color-`. For example, `brand-700` is `--color-brand-700`.
+
+#### Brand colours
+
+| Token | Exact HEX | Intended use |
+|---|---|---|
+| `brand-50` | `#E6F7F2` | Very light brand backgrounds and account-icon backgrounds |
+| `brand-100` | `#D1F2E8` | Selected navigation backgrounds, soft brand badges and focus halos |
+| `brand-200` | `#A6E5D3` | Decorative brand borders and separators |
+| `brand-300` | `#6FD4BB` | Decorative progress tracks and illustrations |
+| `brand-400` | `#2EC49F` | Decorative highlights; not default body text |
+| `brand-500` | `#00B386` | Mint accent and brand illustration details |
+| `brand-600` | `#009872` | Focus outlines and non-text accent details |
+| `brand-700` | `#006852` | **Primary action background**, links, brand icons and selected filter chips |
+| `brand-800` | `#00543F` | Primary action hover state |
+| `brand-900` | `#003D2E` | Primary action pressed state |
+
+Use white text on `brand-700`, `brand-800` and `brand-900`. Use `ink` text on light mint fills, including `brand-500`; white normal-size text on `brand-500` does not meet the text-contrast target. Mint is an accent, not a second primary button colour.
+
+#### Backgrounds, borders and text
+
+| Token | Exact HEX | Intended use |
+|---|---|---|
+| `surface` | `#FFFFFF` | Cards, headers, dialogs, input backgrounds and text on dark primary buttons |
+| `surface-muted` | `#F8FAF9` | Page canvas, neutral sections, secondary-button hover and empty map area |
+| `border` | `#E4E9E7` | Decorative card edges, dividers and table separators |
+| `border-strong` | `#CDD5D2` | Default input and secondary-button borders; do not rely on this subtle border alone to identify a control |
+| `ink` | `#14201C` | Headings, body text, input values and primary labels |
+| `ink-muted` | `#5B6B66` | Descriptions, supporting labels, timestamps and readable placeholders |
+| `ink-faint` | `#8B9894` | Decorative details and inactive controls; not essential instructions or readable placeholder text |
+
+#### Status colours
+
+Use the foreground/background pair together, with a visible status label and an appropriate icon.
+
+| Meaning | Foreground token / HEX | Background token / HEX | Example |
+|---|---|---|---|
+| Success | `success` / `#067647` | `success-soft` / `#ECFDF3` | Profile saved; sharing confirmed by the server |
+| Warning | `warning` / `#B54708` | `warning-soft` / `#FFFAEB` | Stale position; permission or connection needs attention |
+| Error / danger | `danger` / `#B42318` | `danger-soft` / `#FEF3F2` | Failed save, destructive confirmation, sign-out action |
+| Information | `info` / `#175CD3` | `info-soft` / `#EFF8FF` | Informational guidance and a real passenger-location indicator |
+
+Brand teal means an action or selection; it is not evidence that a trip is live. Use the appropriate status token and text for operational meaning.
+
+### 1.3 Component colour rules
+
+| Component or state | Required treatment |
+|---|---|
+| Primary button: Sign in, Save, Start trip | `brand-700` background + `surface` text; hover `brand-800`; pressed `brand-900` |
+| Secondary button: Cancel, Edit profile, Retry | `surface` background + `ink` text + `border-strong` border; hover `surface-muted` |
+| Sign out / destructive action | `danger-soft` background + `danger` text; use a solid `danger` button with `surface` text for the destructive confirmation |
+| Active navigation item | `brand-100` background + `brand-700` label/icon, with a visible selection indicator |
+| Inactive navigation item | `ink-muted` label/icon on `surface`; hover `surface-muted` |
+| Selected All / Speedo / Electric chip | `brand-700` background + `surface` text/icon; selection also exposed through the control's accessible state |
+| Unselected service chip | `surface-muted` background + `ink-muted` text/icon; service name/icon identifies the service |
+| Header account button | `brand-50` circular background + `brand-700` person icon |
+| Profile initials avatar | Solid `brand-700` background + `surface` initials; no separate panel-specific avatar gradient |
+| Card, profile row, table, bottom sheet | `surface` background, `ink` main text, `ink-muted` secondary text and `border` separators |
+| Input | `surface` background, `ink` value, `ink-muted` placeholder and a permanent visible label |
+| Focused input / keyboard focus | `brand-600` outline; use `brand-100` only as a supplementary halo, never the sole focus indicator |
+| Invalid input | `danger` border and error text, plus an explicit error message associated with the input |
+| Disabled control | `surface-muted` fill, `ink-muted` or `ink-faint` content and an actual disabled state; explain why when useful |
+| Loader and skeleton | Brand loader uses `brand-700`/`brand-500`; skeletons use `border` and `surface-muted` |
+| Empty state / unavailable ETA | Neutral background and `ink-muted` explanation; never a green success badge or invented arrival time |
+
+Reuse existing [shared UI components](../../../../frontend/admin-web/src/components/ui/) and shared theme tokens. The same semantic action must have the same treatment in every panel, even if the layouts differ.
+
+### 1.4 Map and tracking colours
+
+- Use `brand-700` for the selected registered route and ordinary bus-marker bodies, with a contrasting outline and clear bus/route labels.
+- A real passenger location may use `info`, with an accuracy area derived from `info-soft`. Show it only after an actual location result; do not draw a sample dot before permission/data exists.
+- Show freshness separately: `success` for a fresh server-accepted observation, `warning` for stale data and neutral `ink-muted` for unavailable/disconnected information. Include a label and last-observed time; a coloured dot alone is insufficient.
+- Use `danger` for a relevant critical alert, not as an arbitrary route category colour. Remove ended trips from active tracking according to the existing lifecycle rules.
+- Until a map provider is integrated, use `surface-muted` with an honest unavailable/empty message. Provider basemap colours and legally required provider branding are outside the app palette; app overlays and controls still follow this standard.
+
+### 1.5 Implementation and change discipline
+
+1. **Web:** import the global theme once through the app entry. Use semantic utility classes such as `bg-brand-700`, `text-ink-muted` and `bg-warning-soft`, or CSS references such as `var(--color-brand-700)`. Do not paste raw HEX/RGB values into individual screen files.
+2. **Feature styles:** aliases such as `--ps-brand` must reference the global token. A feature must not redefine the palette, choose an almost-identical shade or add its own gradient.
+3. **Native mobile:** when the Expo frontend is implemented, expose the same exact values through one shared TypeScript colour module under [frontend/mobile/src/theme](../../../../frontend/mobile/src/theme/). All Passenger and Driver screens import that module. CSS variables do not automatically apply to React Native.
+4. **Opacity and effects:** translucent status borders, shadows and overlays must be defined in shared styles/components from these colours and reused. Do not scatter new opacity variants or custom shadows across screens. Check contrast after compositing.
+5. **Changes:** introduce or change a token in the shared theme and this document together, mirror it in the native theme when present, and review affected states in every panel through the normal team PR workflow.
+6. **Existing differences:** this document does not automatically restyle current code. The existing shared `accent` button uses white text on mint, and the passenger prototype contains custom tints/gradients. Align those implementations with this standard when updating the affected components; do not copy those differences into new screens. Prefer the shared primary button until its accent variant is corrected.
+
+### 1.6 Colour review before a frontend PR
+
+- Match all new colours to the tables and use shared tokens rather than screen-level colour literals.
+- Compare primary/secondary actions, account icons, cards, text and status messages across Passenger, Driver and Administrator.
+- Check normal, hover, pressed, focus, disabled, loading, empty and error states. Meaning must remain clear without colour.
+- Target WCAG AA text contrast: at least 4.5:1 for normal text and 3:1 for qualifying large text. Test actual foreground/background combinations, including placeholders and overlays. A palette entry by itself does not guarantee accessibility.
+- Include screenshots of the affected screens at mobile and desktop widths in the review. These are design checks, not evidence of working GPS, map data or live ETA.
+
+Accessibility references: [W3C contrast guidance](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html) and [W3C use-of-colour guidance](https://www.w3.org/WAI/WCAG22/Understanding/use-of-color.html).
 
 ## 2. Navigation and screen flows
 
@@ -162,4 +266,4 @@ The contract workshop for each milestone records fields, allowed operations, err
 
 ## 7. Design verification
 
-Review each role's flow against its SRS IDs and the integration gate in [tasks.md](tasks.md). Test empty/error/offline/forbidden states as well as successful screens. Verify the ERD supports every proposed relation without creating unnecessary entities for credentials or artificial data. Any change to permissions, trip state, location freshness or alert audiences must update the SRS, architecture and tests together.
+Review each role's flow against its SRS IDs and the integration gate in [tasks.md](../../../tasks.md). Apply the shared colour rules and review checks in sections 1.1–1.6 to every frontend contribution. Test empty/error/offline/forbidden states as well as successful screens. Verify the ERD supports every proposed relation without creating unnecessary entities for credentials or artificial data. Any change to permissions, trip state, location freshness or alert audiences must update the SRS, architecture and tests together.
