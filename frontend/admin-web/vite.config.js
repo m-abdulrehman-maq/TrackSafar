@@ -12,7 +12,25 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 5173,
       proxy: {
-        "/api": { target: apiTarget, changeOrigin: true },
+        "/api": {
+          target: apiTarget,
+          changeOrigin: true,
+          configure: (proxy) => {
+            proxy.on("error", (err, req, res) => {
+              if (res && !res.headersSent) {
+                res.writeHead(503, { "Content-Type": "application/json" });
+                res.end(
+                  JSON.stringify({
+                    error: {
+                      code: "backend_unavailable",
+                      message: `Cannot connect to backend server at ${apiTarget}. Please ensure the FastAPI backend is running (e.g. uvicorn app.main:app --app-dir backend --port 8000 --reload).`,
+                    },
+                  }),
+                );
+              }
+            });
+          },
+        },
         "/ws": { target: wsTarget, ws: true },
       },
     },

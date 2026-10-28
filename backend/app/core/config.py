@@ -1,14 +1,21 @@
 """Application configuration loaded from environment variables."""
 
 from functools import lru_cache
+from pathlib import Path
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=[str(BACKEND_DIR / ".env"), ".env"],
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
 
     app_name: str = "TrackSafar API"
     environment: Literal["development", "staging", "production"] = "development"
@@ -19,8 +26,17 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
 
     # Database. Local development defaults to SQLite; production uses Supabase PostgreSQL.
-    database_url: str = "sqlite+aiosqlite:///./tracksafar_dev.db"
+    database_url: str = f"sqlite+aiosqlite:///{(BACKEND_DIR / 'tracksafar_dev.db').as_posix()}"
     db_echo: bool = False
+
+    @field_validator("database_url", mode="after")
+    @classmethod
+    def _normalize_sqlite_path(cls, v: str) -> str:
+        if v.startswith("sqlite+aiosqlite:///./"):
+            rel_part = v.removeprefix("sqlite+aiosqlite:///./")
+            abs_path = (BACKEND_DIR / rel_part).resolve().as_posix()
+            return f"sqlite+aiosqlite:///{abs_path}"
+        return v
 
     # Identity authority (Supabase Auth).
     # auth_mode="supabase"  -> validate provider-issued JWTs, proxy GoTrue (production default path).

@@ -1,4 +1,5 @@
 import logging
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, WebSocket
@@ -22,6 +23,12 @@ async def lifespan(_app: FastAPI):
             "Not permitted in production (refused at startup)."
         )
     await init_db()
+    if settings.auth_mode == "development" and "PYTEST_CURRENT_TEST" not in os.environ:
+        try:
+            from app.seed_dummy_data import seed_dummy_data
+            await seed_dummy_data()
+        except Exception as exc:
+            logging.getLogger("tracksafar").warning("Could not auto-seed dummy data: %s", exc)
     yield
 
 

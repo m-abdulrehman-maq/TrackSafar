@@ -8,6 +8,8 @@
   ],
   "scripts": {
     "dev": "npm run dev --workspace admin-web",
+    "backend": "python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000 --reload",
+    "seed": "python backend/app/seed_dummy_data.py",
     "build": "npm run build --workspace admin-web",
     "test": "npm run test --workspace admin-web",
     "typecheck": "npm run typecheck --workspace admin-web"

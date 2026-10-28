@@ -55,7 +55,7 @@ def hash_password(password: str) -> str:
 def check_password(password: str, password_hash: str) -> bool:
     try:
         return bcrypt.checkpw(password.encode(), password_hash.encode())
-    except ValueError:
+    except (ValueError, Exception):
         return False
 
 
