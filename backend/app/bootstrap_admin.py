@@ -8,6 +8,7 @@ Credentials come from arguments/environment only — never from source code,
 seeds or Git. The script is idempotent: an existing profile is never
 downgraded and an existing admin is reported without modification.
 """
+
 import asyncio
 import sys
 
@@ -15,8 +16,8 @@ from sqlalchemy import select
 
 from app.auth import hash_password
 from app.core.config import settings
-from app.db.session import SessionLocal, init_db
 from app.models import DevAuthUser, Profile, Role, new_id
+from app.models.database import SessionLocal, init_db
 
 
 async def bootstrap(email: str, password: str, full_name: str = "Administrator") -> int:
@@ -26,7 +27,9 @@ async def bootstrap(email: str, password: str, full_name: str = "Administrator")
     email = email.lower().strip()
     await init_db()
     async with SessionLocal() as db:
-        existing = (await db.execute(select(Profile).where(Profile.email == email))).scalar_one_or_none()
+        existing = (
+            await db.execute(select(Profile).where(Profile.email == email))
+        ).scalar_one_or_none()
         if existing is not None:
             if existing.role == Role.admin:
                 print(f"already an administrator: {email}")
@@ -47,15 +50,25 @@ async def bootstrap(email: str, password: str, full_name: str = "Administrator")
 
             auth_user_id = await create_identity(db, email, password)
         profile = Profile(
-            id=new_id(), auth_user_id=auth_user_id, full_name=full_name.strip(),
-            email=email, role=Role.admin, is_active=True,
+            id=new_id(),
+            auth_user_id=auth_user_id,
+            full_name=full_name.strip(),
+            email=email,
+            role=Role.admin,
+            is_active=True,
         )
         db.add(profile)
         await db.flush()
-        from app.services.audit import record_audit
+        from app.models.services.audit import record_audit
 
-        await record_audit(db, actor=None, action="admin.bootstrap", entity_type="profile",
-                           entity_id=profile.id, metadata={"email": email})
+        await record_audit(
+            db,
+            actor=None,
+            action="admin.bootstrap",
+            entity_type="profile",
+            entity_id=profile.id,
+            metadata={"email": email},
+        )
         await db.commit()
         print(f"administrator created: {email}")
         return 0
@@ -63,7 +76,9 @@ async def bootstrap(email: str, password: str, full_name: str = "Administrator")
 
 def main() -> None:
     if len(sys.argv) < 3:
-        print("usage: python -m app.bootstrap_admin <email> <password> [full name]", file=sys.stderr)
+        print(
+            "usage: python -m app.bootstrap_admin <email> <password> [full name]", file=sys.stderr
+        )
         sys.exit(2)
     email, password = sys.argv[1], sys.argv[2]
     name = sys.argv[3] if len(sys.argv) > 3 else "Administrator"

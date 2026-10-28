@@ -1,14 +1,14 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.v1.router import api_router
+from app.controllers.router import api_router
+from app.controllers.tracking.hub import tracking_socket
 from app.core.config import settings
 from app.core.errors import ApiError, api_error_handler
-from app.db.session import init_db
-from app.websocket.hub import tracking_socket
+from app.models.database import init_db
 
 logging.basicConfig(level=logging.DEBUG if settings.debug else logging.INFO)
 
@@ -52,5 +52,5 @@ async def health() -> dict:
 
 
 @app.websocket("/ws/tracking")
-async def ws_tracking(ws):
+async def ws_tracking(ws: WebSocket):
     await tracking_socket(ws)

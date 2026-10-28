@@ -1,3 +1,5 @@
+> Current implementation: see [the MVC guide](../../MVC.md). This document records the broader system design; native mobile and deployment scaffolds are not implemented.
+
 # TrackSafar — System Architecture
 
 Version: 1.0 · Date: 2026-10-13 · Status: planned architecture; no component is claimed operational.

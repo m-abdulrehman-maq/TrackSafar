@@ -16,7 +16,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON
 
-from app.db.session import Base
+from app.models.database import Base
 
 
 def utcnow() -> datetime:
@@ -125,14 +125,18 @@ class Bus(Base):
 
 class Route(Base):
     __tablename__ = "routes"
-    __table_args__ = (UniqueConstraint("route_number", "direction", name="uq_route_number_direction"),)
+    __table_args__ = (
+        UniqueConstraint("route_number", "direction", name="uq_route_number_direction"),
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
     route_number: Mapped[str] = mapped_column(String(32), index=True)
     name: Mapped[str] = mapped_column(String(160))
     origin: Mapped[str] = mapped_column(String(160))
     destination: Mapped[str] = mapped_column(String(160))
-    direction: Mapped[RouteDirection] = mapped_column(Enum(RouteDirection), default=RouteDirection.outbound)
+    direction: Mapped[RouteDirection] = mapped_column(
+        Enum(RouteDirection), default=RouteDirection.outbound
+    )
     # GeoJSON LineString coordinates [[lon, lat], ...] — null when geometry is not sourced.
     path: Mapped[list | None] = mapped_column(JSON, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
@@ -202,7 +206,9 @@ class Trip(Base):
     driver_id: Mapped[str] = mapped_column(ForeignKey("drivers.id"), index=True)
     bus_id: Mapped[str] = mapped_column(ForeignKey("buses.id"), index=True)
     route_id: Mapped[str] = mapped_column(ForeignKey("routes.id"), index=True)
-    status: Mapped[TripStatus] = mapped_column(Enum(TripStatus), default=TripStatus.active, index=True)
+    status: Mapped[TripStatus] = mapped_column(
+        Enum(TripStatus), default=TripStatus.active, index=True
+    )
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     ended_by: Mapped[str | None] = mapped_column(ForeignKey("profiles.id"), nullable=True)
@@ -270,8 +276,12 @@ class OperationalIncident(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
     title: Mapped[str] = mapped_column(String(200))
     description: Mapped[str] = mapped_column(Text, default="")
-    severity: Mapped[AlertSeverity] = mapped_column(Enum(AlertSeverity), default=AlertSeverity.warning)
-    status: Mapped[IncidentStatus] = mapped_column(Enum(IncidentStatus), default=IncidentStatus.open, index=True)
+    severity: Mapped[AlertSeverity] = mapped_column(
+        Enum(AlertSeverity), default=AlertSeverity.warning
+    )
+    status: Mapped[IncidentStatus] = mapped_column(
+        Enum(IncidentStatus), default=IncidentStatus.open, index=True
+    )
     trip_id: Mapped[str | None] = mapped_column(ForeignKey("trips.id"), nullable=True)
     bus_id: Mapped[str | None] = mapped_column(ForeignKey("buses.id"), nullable=True)
     route_id: Mapped[str | None] = mapped_column(ForeignKey("routes.id"), nullable=True)
@@ -296,7 +306,9 @@ class AuditEvent(Base):
     entity_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     outcome: Mapped[AuditOutcome] = mapped_column(Enum(AuditOutcome), default=AuditOutcome.success)
     metadata_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, index=True
+    )
 
 
 class DevAuthUser(Base):

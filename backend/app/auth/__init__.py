@@ -4,11 +4,11 @@ Supabase Auth is the sole credential authority in deployed environments. The
 development provider issues compatible JWTs and is hard-refused outside
 development (see Settings.validate_security).
 """
+
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
 import bcrypt
-import httpx
 import jwt
 
 from app.core.config import settings
@@ -33,7 +33,9 @@ def _decode_token(token: str) -> dict:
     if not secret:
         raise Unauthorized("server identity verification is not configured")
     try:
-        return jwt.decode(token, secret, algorithms=[ALGORITHM], options={"require": ["exp", "sub"]})
+        return jwt.decode(
+            token, secret, algorithms=[ALGORITHM], options={"require": ["exp", "sub"]}
+        )
     except jwt.ExpiredSignatureError as exc:
         raise Unauthorized("session expired") from exc
     except jwt.InvalidTokenError as exc:
@@ -89,9 +91,9 @@ async def resolve_principal(db, token: str) -> Principal:
 
     from sqlalchemy import select
 
-    profile = (await db.execute(
-        select(Profile).where(Profile.auth_user_id == auth_user_id)
-    )).scalar_one_or_none()
+    profile = (
+        await db.execute(select(Profile).where(Profile.auth_user_id == auth_user_id))
+    ).scalar_one_or_none()
     if profile is None:
         raise Forbidden("no provisioned application profile for this account")
     if not profile.is_active:
@@ -109,7 +111,9 @@ async def resolve_principal(db, token: str) -> Principal:
 def _decode_token_or_dev(token: str) -> dict:
     secret = settings.supabase_jwt_secret or "tracksafar-development-secret-key-32bytes-min"
     try:
-        return jwt.decode(token, secret, algorithms=[ALGORITHM], options={"require": ["exp", "sub"]})
+        return jwt.decode(
+            token, secret, algorithms=[ALGORITHM], options={"require": ["exp", "sub"]}
+        )
     except jwt.ExpiredSignatureError as exc:
         raise Unauthorized("session expired") from exc
     except jwt.InvalidTokenError as exc:
@@ -122,14 +126,14 @@ async def authenticate_dev_credentials(db, email: str, password: str) -> Profile
         raise Forbidden("password login is handled by the identity provider")
     from sqlalchemy import select
 
-    user = (await db.execute(
-        select(DevAuthUser).where(DevAuthUser.email == email.lower().strip())
-    )).scalar_one_or_none()
+    user = (
+        await db.execute(select(DevAuthUser).where(DevAuthUser.email == email.lower().strip()))
+    ).scalar_one_or_none()
     if user is None or not check_password(password, user.password_hash):
         raise Unauthorized("invalid email or password")
-    profile = (await db.execute(
-        select(Profile).where(Profile.auth_user_id == user.id)
-    )).scalar_one_or_none()
+    profile = (
+        await db.execute(select(Profile).where(Profile.auth_user_id == user.id))
+    ).scalar_one_or_none()
     if profile is None:
         raise Unauthorized("no provisioned application profile for this account")
     if not profile.is_active:
@@ -138,6 +142,7 @@ async def authenticate_dev_credentials(db, email: str, password: str) -> Profile
 
 
 # --- role helpers -----------------------------------------------------------
+
 
 def require_role(principal: Principal, *roles: Role) -> None:
     if principal.role not in roles:

@@ -1,10 +1,11 @@
 """FastAPI dependencies for identity and role enforcement."""
+
 from fastapi import Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import Principal, resolve_principal
 from app.core.errors import Unauthorized
-from app.db.session import get_db
+from app.models.database import get_db
 
 
 def _extract_bearer(request: Request) -> str:

@@ -5,12 +5,13 @@
 - DevelopmentIdentityProvider manages the local dev credential store and is
   unusable when auth_mode=supabase.
 """
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import hash_password
 from app.core.config import settings
 from app.core.errors import Conflict, Unauthorized, ValidationFailed
-from app.models import DevAuthUser, Profile, Role, new_id
+from app.models import DevAuthUser, Profile, new_id
 
 
 class IdentityProviderError(Exception):
@@ -43,7 +44,9 @@ class SupabaseIdentityProvider:
         if resp.status_code == 422:
             raise Conflict("an account with this email already exists")
         if resp.status_code >= 400:
-            raise IdentityProviderError(f"identity provider rejected user creation ({resp.status_code})")
+            raise IdentityProviderError(
+                f"identity provider rejected user creation ({resp.status_code})"
+            )
         data = resp.json()
         return str(data["id"])
 
@@ -57,7 +60,9 @@ class SupabaseIdentityProvider:
                 json={"ban_duration": "876600h"},
             )
         if resp.status_code >= 400:
-            raise IdentityProviderError(f"identity provider rejected deactivation ({resp.status_code})")
+            raise IdentityProviderError(
+                f"identity provider rejected deactivation ({resp.status_code})"
+            )
 
     async def reactivate_user(self, auth_user_id: str) -> None:
         import httpx
@@ -69,7 +74,9 @@ class SupabaseIdentityProvider:
                 json={"ban_duration": "none"},
             )
         if resp.status_code >= 400:
-            raise IdentityProviderError(f"identity provider rejected reactivation ({resp.status_code})")
+            raise IdentityProviderError(
+                f"identity provider rejected reactivation ({resp.status_code})"
+            )
 
 
 class DevelopmentIdentityProvider:
@@ -79,9 +86,9 @@ class DevelopmentIdentityProvider:
         email = email.lower().strip()
         from sqlalchemy import select
 
-        existing = (await db.execute(
-            select(DevAuthUser).where(DevAuthUser.email == email)
-        )).scalar_one_or_none()
+        existing = (
+            await db.execute(select(DevAuthUser).where(DevAuthUser.email == email))
+        ).scalar_one_or_none()
         if existing is not None:
             raise Conflict("an account with this email already exists")
         user = DevAuthUser(id=new_id(), email=email, password_hash=hash_password(password))
@@ -123,9 +130,9 @@ async def verify_local_password(db: AsyncSession, email: str, password: str) -> 
         raise Unauthorized("password login is handled by the identity provider")
     from sqlalchemy import select
 
-    user = (await db.execute(
-        select(DevAuthUser).where(DevAuthUser.email == email.lower().strip())
-    )).scalar_one_or_none()
+    user = (
+        await db.execute(select(DevAuthUser).where(DevAuthUser.email == email.lower().strip()))
+    ).scalar_one_or_none()
     return bool(user and check_password(password, user.password_hash))
 
 
